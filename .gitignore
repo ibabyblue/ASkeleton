@@ -1,0 +1,78 @@
+# Gradle / generated build output
+.gradle/
+.kotlin/
+build/
+**/build/
+bin/
+gen/
+out/
+target/
+obj/
+
+# Built Android artifacts
+*.apk
+*.ap_
+*.aab
+*.aar
+*.dex
+*.class
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# Other local editor state
+.fleet/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local Android SDK and machine configuration
+local.properties
+
+# Android profiling and native build state
+captures/
+.navigation/
+.externalNativeBuild/
+.cxx/
+*.hprof
+
+# Logs and crash dumps
+*.log
+hs_err_pid*
+
+# Signing material and local release configuration
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties
+signing.properties
+key.properties
+
+# Local secrets and service configuration
+secrets.properties
+credentials.properties
+google-services.json
+.env
+.env.*
+!.env.example
+
+# Local Maven publication directories
+maven-repo/
+
+# Local agent sessions and repository guidance
+.agents/
+.codex/
+.claude/
+/AGENTS.md
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db

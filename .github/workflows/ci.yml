@@ -1,0 +1,29 @@
+name: Android CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Verify library and example
+        run: ./gradlew test lint :askeleton:assembleRelease :example:assembleDebug
+      - name: Upload release AAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: askeleton-release-aar
+          path: askeleton/build/outputs/aar/askeleton-release.aar

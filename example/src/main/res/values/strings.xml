@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ASkeleton Example</string>
+    <string name="view_lab_title">Android Views</string>
+    <string name="profile_name">Mira Cat</string>
+    <string name="profile_biography">A representative multiline biography keeps the loaded footprint stable in Android Views too.</string>
+    <string name="local_override">Per-activation warm appearance</string>
+</resources>
