@@ -32,7 +32,7 @@ ASkeleton is a Kotlin Android library for synchronized, slot-level skeleton load
 
 ## Installation
 
-For a tagged GitHub release, add JitPack to dependency resolution:
+ASkeleton `0.1.0` is distributed from its tagged GitHub source through JitPack. Add JitPack to dependency resolution:
 
 ```kotlin
 dependencyResolutionManagement {
@@ -52,7 +52,7 @@ dependencies {
 }
 ```
 
-The repository also defines the publication coordinates `io.github.ibabyblue:askeleton:0.1.0` for Maven-compatible release pipelines. Until that artifact is published, use JitPack, a local AAR, or `publishReleasePublicationToMavenLocal`.
+The repository also defines the publication coordinates `io.github.ibabyblue:askeleton:0.1.0` for Maven-compatible release pipelines. Use those coordinates after deploying the artifact to a Maven repository; otherwise use JitPack, a local AAR, or `publishReleasePublicationToMavenLocal`.
 
 To consume a locally built AAR, run `./gradlew :askeleton:assembleRelease`; the artifact is written to `askeleton/build/outputs/aar/askeleton-release.aar`.
 
