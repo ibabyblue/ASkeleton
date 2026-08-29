@@ -167,11 +167,6 @@ private fun DrawScope.drawImageMaskedSkeleton(
     configuration: SkeletonConfiguration,
     frameTimeNanos: Long,
 ) {
-    drawContext.canvas.saveLayer(Rect(Offset.Zero, size), Paint())
-    drawRect(color = configuration.baseColor.composeColor)
-    val phase = ShimmerPhase.phase(frameTimeNanos, configuration.durationMillis, configuration.bandWidth)
-    shimmerBrush(configuration, phase, size)?.let { drawRect(brush = it) }
-
     val scale = min(size.width / mask.width, size.height / mask.height)
     val destinationWidth = (mask.width * scale).roundToInt()
     val destinationHeight = (mask.height * scale).roundToInt()
@@ -179,6 +174,19 @@ private fun DrawScope.drawImageMaskedSkeleton(
         x = ((size.width - destinationWidth) / 2f).roundToInt(),
         y = ((size.height - destinationHeight) / 2f).roundToInt(),
     )
+    val destinationTopLeft = Offset(destinationOffset.x.toFloat(), destinationOffset.y.toFloat())
+    val destinationSize = Size(destinationWidth.toFloat(), destinationHeight.toFloat())
+
+    drawContext.canvas.saveLayer(Rect(Offset.Zero, size), Paint())
+    drawRect(
+        color = configuration.baseColor.composeColor,
+        topLeft = destinationTopLeft,
+        size = destinationSize,
+    )
+    val phase = ShimmerPhase.phase(frameTimeNanos, configuration.durationMillis, configuration.bandWidth)
+    shimmerBrush(configuration, phase, size)?.let { brush ->
+        drawRect(brush = brush, topLeft = destinationTopLeft, size = destinationSize)
+    }
     drawImage(
         image = mask,
         srcOffset = IntOffset.Zero,

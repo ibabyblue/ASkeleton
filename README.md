@@ -32,7 +32,7 @@ ASkeleton is a Kotlin Android library for synchronized, slot-level skeleton load
 
 ## Installation
 
-ASkeleton `0.1.0` is distributed from its tagged GitHub source through JitPack. Add JitPack to dependency resolution:
+ASkeleton `0.1.1` is distributed from its tagged GitHub source through JitPack. Add JitPack to dependency resolution:
 
 ```kotlin
 dependencyResolutionManagement {
@@ -48,11 +48,11 @@ Then add the library to the consuming module:
 
 ```kotlin
 dependencies {
-    implementation("com.github.ibabyblue:ASkeleton:0.1.0")
+    implementation("com.github.ibabyblue:ASkeleton:0.1.1")
 }
 ```
 
-The repository also defines the publication coordinates `io.github.ibabyblue:askeleton:0.1.0` for Maven-compatible release pipelines. Use those coordinates after deploying the artifact to a Maven repository; otherwise use JitPack, a local AAR, or `publishReleasePublicationToMavenLocal`.
+The repository also defines the publication coordinates `io.github.ibabyblue:askeleton:0.1.1` for Maven-compatible release pipelines. Use those coordinates after deploying the artifact to a Maven repository; otherwise use JitPack, a local AAR, or `publishReleasePublicationToMavenLocal`.
 
 To consume a locally built AAR, run `./gradlew :askeleton:assembleRelease`; the artifact is written to `askeleton/build/outputs/aar/askeleton-release.aar`.
 
@@ -125,6 +125,8 @@ logoImageView.skeleton(
 ```
 
 `SkeletonMask.OwnImage` requires an `ImageView` whose current drawable is a `BitmapDrawable`. An unavailable or recycled bitmap is a safe no-op. Transparent-background bitmaps create silhouettes; opaque bitmaps create rectangles.
+
+Image masks are aspect-fitted and centered without changing the host footprint. Pixels outside the fitted mask destination remain transparent in both Compose and Android Views.
 
 Geometric and image-mask activation share one View overlay. Deactivate before switching rendering modes.
 

@@ -88,16 +88,17 @@ internal class SkeletonDrawable(
 
     private fun drawImageMasked(canvas: Canvas, bitmap: Bitmap) {
         val frame = RectF(bounds)
-        val checkpoint = canvas.saveLayer(frame, null)
-        fillPaint.color = configuration.baseColor.toArgb()
-        canvas.drawRect(frame, fillPaint)
-        shimmerPaint.shader = gradient(frame)
-        if (shimmerPaint.shader != null) canvas.drawRect(frame, shimmerPaint)
-        shimmerPaint.shader = null
-
         val source = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
         val destination = RectF(source)
         Matrix().apply { setRectToRect(source, frame, Matrix.ScaleToFit.CENTER) }.mapRect(destination)
+
+        val checkpoint = canvas.saveLayer(frame, null)
+        fillPaint.color = configuration.baseColor.toArgb()
+        canvas.drawRect(destination, fillPaint)
+        shimmerPaint.shader = gradient(frame)
+        if (shimmerPaint.shader != null) canvas.drawRect(destination, shimmerPaint)
+        shimmerPaint.shader = null
+
         canvas.drawBitmap(bitmap, null, destination, maskPaint)
         canvas.restoreToCount(checkpoint)
     }

@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.ibabyblue"
-version = "0.1.0"
+version = "0.1.1"
 
 android {
     namespace = "com.ibabyblue.askeleton"
@@ -50,6 +50,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.compose.foundation)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 afterEvaluate {
