@@ -4,14 +4,21 @@ All notable changes to ASkeleton are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning.
 
-## [Unreleased]
+## [0.2.0] - 2026-10-08
 
 ### Added
 
-- Added original-pixel and tinted-silhouette image components with aspect-fit sizing and static restoration.
-- Added single-gradient fill mode alongside the existing layered color rendering.
-- Added highlight-only content-alpha overlays for existing shapes.
+- Added `SkeletonImage` for Compose and `SkeletonImageView` for Android Views, with `Original` and `Tint` styles, aspect-fit sizing, and static rendering when inactive.
+- Added `SkeletonImageConfiguration` with live image/style updates, sweep direction, duration, and band-width configuration.
+- Added `SkeletonFillMode.Gradient` for a single base-highlight-base gradient; `Overlay` remains the default for existing skeleton calls.
+- Added Compose `Modifier.skeletonOverlay` for highlight-only rendering masked by existing content alpha, including partial opacity.
 - Added rendering regression coverage for alpha compositing, image sizing, and updates.
+- Expanded the Demo with Original/Tint and Overlay/Gradient comparisons, landscape/portrait image switching, width-only sizing, live style changes, and zero-duration rendering.
+
+### Changed
+
+- Read Compose frame state during drawing to avoid recomposing skeleton modifiers on every animation frame.
+- Enabled bitmap filtering for Android View image masks.
 
 ## [0.1.1] - 2026-08-29
 
@@ -30,5 +37,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Added an offline Example application covering both Android UI toolkits.
 - Added unit, instrumentation, lint, CI, Maven publication, license, and repository documentation.
 
+[0.2.0]: https://github.com/ibabyblue/ASkeleton/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/ibabyblue/ASkeleton/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/ibabyblue/ASkeleton/releases/tag/0.1.0
