@@ -1,7 +1,7 @@
 package com.ibabyblue.askeleton.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.IntSize
 import com.ibabyblue.askeleton.ShimmerPhase
 import com.ibabyblue.askeleton.SkeletonColor
 import com.ibabyblue.askeleton.SkeletonConfiguration
+import com.ibabyblue.askeleton.SkeletonFillMode
 import com.ibabyblue.askeleton.SkeletonLineMetrics
 import com.ibabyblue.askeleton.SkeletonShape
 import kotlin.math.max
@@ -40,7 +41,7 @@ public fun Modifier.skeleton(
         if (!active) {
             drawContent()
         } else {
-            drawGeometricSkeleton(shape, configuration, frameTimeNanos)
+            drawGeometricSkeleton(shape, configuration, frameTimeNanos.value)
         }
     }
 }
@@ -64,7 +65,7 @@ public fun Modifier.skeletonText(
         if (!active) {
             drawContent()
         } else {
-            drawTextSkeleton(lineHeight, lastLineWidthFraction, configuration, frameTimeNanos)
+            drawTextSkeleton(lineHeight, lastLineWidthFraction, configuration, frameTimeNanos.value)
         }
     }
 }
@@ -82,19 +83,18 @@ public fun Modifier.skeleton(
         if (!active) {
             drawContent()
         } else {
-            drawImageMaskedSkeleton(mask, configuration, frameTimeNanos)
+            drawImageMaskedSkeleton(mask, configuration, frameTimeNanos.value)
         }
     }
 }
 
 @Composable
-private fun skeletonFrameTime(active: Boolean): Long {
-    val frameTime by produceState(initialValue = 0L, key1 = active) {
+internal fun skeletonFrameTime(active: Boolean): State<Long> {
+    return produceState(initialValue = 0L, key1 = active) {
         if (active) {
             while (true) value = withFrameNanos { it }
         }
     }
-    return frameTime
 }
 
 private fun DrawScope.drawGeometricSkeleton(
@@ -105,21 +105,22 @@ private fun DrawScope.drawGeometricSkeleton(
     val phase = ShimmerPhase.phase(frameTimeNanos, configuration.durationMillis, configuration.bandWidth)
     val base = configuration.baseColor.composeColor
     val brush = shimmerBrush(configuration, phase, size)
+    val needsBase = configuration.fillMode == SkeletonFillMode.Overlay || brush == null
     when (shape) {
         SkeletonShape.Circle -> {
             val radius = min(size.width, size.height) / 2f
-            drawCircle(color = base, radius = radius)
+            if (needsBase) drawCircle(color = base, radius = radius)
             if (brush != null) drawCircle(brush = brush, radius = radius)
         }
         SkeletonShape.Capsule -> {
             val radius = min(size.width, size.height) / 2f
-            drawRoundRect(color = base, cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius))
+            if (needsBase) drawRoundRect(color = base, cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius))
             if (brush != null) drawRoundRect(brush = brush, cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius))
         }
         is SkeletonShape.RoundedRect -> {
             val radius = (shape.cornerRadiusDp ?: configuration.cornerRadiusDp) * density
             val corner = androidx.compose.ui.geometry.CornerRadius(max(0f, radius))
-            drawRoundRect(color = base, cornerRadius = corner)
+            if (needsBase) drawRoundRect(color = base, cornerRadius = corner)
             if (brush != null) drawRoundRect(brush = brush, cornerRadius = corner)
         }
     }
@@ -145,13 +146,14 @@ private fun DrawScope.drawTextSkeleton(
         val top = line * lineHeightPx + (lineHeightPx - barHeight) / 2f
         val barSize = Size(size.width * fraction, barHeight)
         val offset = Offset(0f, top)
-        drawRoundRect(
+        val brush = shimmerBrush(configuration, phase, barSize, offset)
+        if (configuration.fillMode == SkeletonFillMode.Overlay || brush == null) drawRoundRect(
             color = configuration.baseColor.composeColor,
             topLeft = offset,
             size = barSize,
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(radius),
         )
-        shimmerBrush(configuration, phase, barSize, offset)?.let { brush ->
+        brush?.let { brush ->
             drawRoundRect(
                 brush = brush,
                 topLeft = offset,
@@ -162,7 +164,7 @@ private fun DrawScope.drawTextSkeleton(
     }
 }
 
-private fun DrawScope.drawImageMaskedSkeleton(
+internal fun DrawScope.drawImageMaskedSkeleton(
     mask: ImageBitmap,
     configuration: SkeletonConfiguration,
     frameTimeNanos: Long,
@@ -177,14 +179,15 @@ private fun DrawScope.drawImageMaskedSkeleton(
     val destinationTopLeft = Offset(destinationOffset.x.toFloat(), destinationOffset.y.toFloat())
     val destinationSize = Size(destinationWidth.toFloat(), destinationHeight.toFloat())
 
+    val phase = ShimmerPhase.phase(frameTimeNanos, configuration.durationMillis, configuration.bandWidth)
+    val brush = shimmerBrush(configuration, phase, size)
     drawContext.canvas.saveLayer(Rect(Offset.Zero, size), Paint())
-    drawRect(
+    if (configuration.fillMode == SkeletonFillMode.Overlay || brush == null) drawRect(
         color = configuration.baseColor.composeColor,
         topLeft = destinationTopLeft,
         size = destinationSize,
     )
-    val phase = ShimmerPhase.phase(frameTimeNanos, configuration.durationMillis, configuration.bandWidth)
-    shimmerBrush(configuration, phase, size)?.let { brush ->
+    brush?.let { brush ->
         drawRect(brush = brush, topLeft = destinationTopLeft, size = destinationSize)
     }
     drawImage(
@@ -198,23 +201,28 @@ private fun DrawScope.drawImageMaskedSkeleton(
     drawContext.canvas.restore()
 }
 
-private fun DrawScope.shimmerBrush(
+internal fun DrawScope.shimmerBrush(
     configuration: SkeletonConfiguration,
     phase: Float,
     drawingSize: Size,
     origin: Offset = Offset.Zero,
 ): Brush? {
-    if (configuration.bandWidth <= 0f || drawingSize.width <= 0f || drawingSize.height <= 0f) return null
+    if (!configuration.bandWidth.isFinite() || configuration.bandWidth <= 0f || drawingSize.width <= 0f || drawingSize.height <= 0f) return null
     val points = configuration.direction.gradientPoints(phase, configuration.bandWidth)
     val start = origin + Offset(drawingSize.width * points.start.x, drawingSize.height * points.start.y)
     val end = origin + Offset(drawingSize.width * points.end.x, drawingSize.height * points.end.y)
     if (start == end) return null
+    val edge = if (configuration.fillMode == SkeletonFillMode.Gradient) {
+        configuration.baseColor.composeColor
+    } else {
+        Color.Transparent
+    }
     return Brush.linearGradient(
-        colors = listOf(Color.Transparent, configuration.highlightColor.composeColor, Color.Transparent),
+        colors = listOf(edge, configuration.highlightColor.composeColor, edge),
         start = start,
         end = end,
     )
 }
 
-private val SkeletonColor.composeColor: Color
+internal val SkeletonColor.composeColor: Color
     get() = Color(red = red, green = green, blue = blue, alpha = alpha)

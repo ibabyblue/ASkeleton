@@ -12,6 +12,7 @@ public data class SkeletonConfiguration(
     public val bandWidth: Float = 0.6f,
     public val cornerRadiusDp: Float = 5f,
     public val direction: ShimmerDirection = ShimmerDirection.LeftToRight,
+    public val fillMode: SkeletonFillMode = SkeletonFillMode.Overlay,
 ) {
     /** Default neutral-gray fill and near-white highlight appearance. */
     public companion object {

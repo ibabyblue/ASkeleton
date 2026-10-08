@@ -162,3 +162,40 @@ The release publication contains the AAR, sources JAR, Gradle Module Metadata, a
 ASkeleton is available under the MIT License. See [LICENSE](LICENSE).
 
 Release history is maintained in [CHANGELOG.md](CHANGELOG.md).
+
+## Image Styles and Color Compositing
+
+`SkeletonImage` (Compose) and `SkeletonImageView` (Views) share an aspect-fit image contract:
+`Original` retains source RGB and alpha under a highlight-only overlay; `Tint(color)` renders a single
+base-highlight-base gradient and retains a static tinted silhouette when inactive.
+
+```kotlin
+val appearance = SkeletonImageConfiguration(
+    baseStyle = SkeletonImageBaseStyle.Original,
+    highlightColor = SkeletonColor(1f, 1f, 1f, 0.5f),
+)
+// Import com.ibabyblue.askeleton.compose.SkeletonImage
+SkeletonImage(bitmap.asImageBitmap(), appearance, active = isLoading, modifier = Modifier.width(80.dp))
+
+// Import com.ibabyblue.askeleton.view.SkeletonImageView
+val slot = SkeletonImageView(context).apply {
+    image = bitmap
+    configuration = appearance
+    isActive = true
+}
+```
+
+The View component retains bitmap ownership with the caller, treats missing/recycled images as empty,
+and unregisters its animation on detachment or window invisibility. Changing configuration or image updates
+an active component without manual teardown. A nonpositive duration or band width retains the static base.
+Compose animation is disposed with composition and follows its frame clock. Width-only sizing preserves aspect ratio.
+
+Existing `skeleton` calls keep their activation snapshot contract and default layered appearance.
+`SkeletonConfiguration.fillMode = SkeletonFillMode.Gradient` selects a single base-highlight-base gradient,
+preserving the specified peak alpha. The default `Overlay` draws highlight over the base instead.
+
+For existing colored shapes, `Modifier.skeletonOverlay(active, highlightColor)` keeps content visible and
+masks only the highlight with the rendered content alpha, including partial opacity. Place it before
+drawing modifiers that belong to the mask, for example `Modifier.skeletonOverlay(...).background(...)`. It does not alter
+measurement, semantics, or input handling. Bitmap selection, layout, colors, and loading decisions remain
+application responsibilities. No text-specific shimmer component is added.

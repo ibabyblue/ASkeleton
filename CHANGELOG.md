@@ -4,6 +4,15 @@ All notable changes to ASkeleton are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning.
 
+## [Unreleased]
+
+### Added
+
+- Added original-pixel and tinted-silhouette image components with aspect-fit sizing and static restoration.
+- Added single-gradient fill mode alongside the existing layered color rendering.
+- Added highlight-only content-alpha overlays for existing shapes.
+- Added rendering regression coverage for alpha compositing, image sizing, and updates.
+
 ## [0.1.1] - 2026-08-29
 
 ### Fixed

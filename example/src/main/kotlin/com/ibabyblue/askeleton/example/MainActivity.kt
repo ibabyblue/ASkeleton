@@ -102,6 +102,8 @@ private fun SkeletonCatalog() {
             Text("Direction: ${direction.name}")
         }
 
+        ImageStylesDemo(loading = loading, showCompose = showCompose, direction = direction)
+
         if (showCompose) {
             SkeletonAppearance(appearance) {
                 ComposeLab(loading)
@@ -176,7 +178,7 @@ private fun ViewLab(loading: Boolean, appearance: SkeletonConfiguration) {
 }
 
 @Composable
-private fun LabCard(title: String, content: @Composable () -> Unit) {
+internal fun LabCard(title: String, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

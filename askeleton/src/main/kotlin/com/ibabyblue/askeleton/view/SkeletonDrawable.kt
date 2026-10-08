@@ -16,6 +16,7 @@ import android.graphics.drawable.Drawable
 import android.widget.TextView
 import com.ibabyblue.askeleton.ShimmerPhase
 import com.ibabyblue.askeleton.SkeletonConfiguration
+import com.ibabyblue.askeleton.SkeletonFillMode
 import com.ibabyblue.askeleton.SkeletonShape
 import java.lang.ref.WeakReference
 import kotlin.math.max
@@ -34,7 +35,7 @@ internal class SkeletonDrawable(
     private val density = host.resources.displayMetrics.density
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val shimmerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
         xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
     }
     private var phase: Float = -configuration.bandWidth
@@ -71,7 +72,9 @@ internal class SkeletonDrawable(
     private fun drawBars(canvas: Canvas, bars: List<Bar>) {
         if (bars.isEmpty()) return
         fillPaint.color = configuration.baseColor.toArgb()
-        bars.forEach { canvas.drawRoundRect(it.rect, it.radius, it.radius, fillPaint) }
+        if (configuration.fillMode == SkeletonFillMode.Overlay || gradient(RectF(bounds)) == null) {
+            bars.forEach { canvas.drawRoundRect(it.rect, it.radius, it.radius, fillPaint) }
+        }
 
         val renderingFrame = bars.drop(1).fold(RectF(bars.first().rect)) { result, bar ->
             result.apply { union(bar.rect) }
@@ -94,8 +97,10 @@ internal class SkeletonDrawable(
 
         val checkpoint = canvas.saveLayer(frame, null)
         fillPaint.color = configuration.baseColor.toArgb()
-        canvas.drawRect(destination, fillPaint)
         shimmerPaint.shader = gradient(frame)
+        if (configuration.fillMode == SkeletonFillMode.Overlay || shimmerPaint.shader == null) {
+            canvas.drawRect(destination, fillPaint)
+        }
         if (shimmerPaint.shader != null) canvas.drawRect(destination, shimmerPaint)
         shimmerPaint.shader = null
 
@@ -104,19 +109,24 @@ internal class SkeletonDrawable(
     }
 
     private fun gradient(frame: RectF): LinearGradient? {
-        if (configuration.bandWidth <= 0f || frame.isEmpty) return null
+        if (!configuration.bandWidth.isFinite() || configuration.bandWidth <= 0f || frame.isEmpty) return null
         val points = configuration.direction.gradientPoints(phase, configuration.bandWidth)
         val startX = frame.left + frame.width() * points.start.x
         val startY = frame.top + frame.height() * points.start.y
         val endX = frame.left + frame.width() * points.end.x
         val endY = frame.top + frame.height() * points.end.y
         if (startX == endX && startY == endY) return null
+        val edge = if (configuration.fillMode == SkeletonFillMode.Gradient) {
+            configuration.baseColor.toArgb()
+        } else {
+            0x00000000
+        }
         return LinearGradient(
             startX,
             startY,
             endX,
             endY,
-            intArrayOf(0x00000000, configuration.highlightColor.toArgb(), 0x00000000),
+            intArrayOf(edge, configuration.highlightColor.toArgb(), edge),
             floatArrayOf(0f, 0.5f, 1f),
             Shader.TileMode.CLAMP,
         )
